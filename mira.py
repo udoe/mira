@@ -137,7 +137,8 @@ class MiraAppplication:
                         width="fill",
                         height="fill",
                         text=ps.name,
-                        command=lambda:self._button_pressed(),
+                        command=self._button_pressed,
+                        args=[ps],
                         )
             bt.font = config.Buttons.FONT[0]
             bt.text_size = config.Buttons.FONT[1]
@@ -152,14 +153,13 @@ class MiraAppplication:
                 bt_y += 1
 
         # remove title bar (works on Linux only)
-        if platform.system() is 'Linux':
+        if platform.system() == 'Linux':
             root = self.app.tk
             root.wm_attributes('-type', 'splash')
 
 
-
     def _button_pressed(self, preset: Preset) -> None:
-        print("button {} was pressed".format(preset.name))
+        print("button '{}' was pressed".format(preset.name))
 
 
     def run(self) -> None:
