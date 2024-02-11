@@ -8,4 +8,6 @@ class Key:
 
     NAME = 'name'
     URL = 'url'
+    BACKGROUND_COLOR = 'background_color'
+    TEXT_COLOR = 'text_color'
 

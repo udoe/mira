@@ -37,9 +37,19 @@ def get_stations_list(stations: MiraStations) -> list:
 class Preset:
     """ A predefined internet radio station """
 
-    def __init__(self, station: dict) -> None:
+    def __init__(self, config: MiraConfig, station: dict) -> None:
         self.name = station[Key.NAME]
         self.url = station[Key.URL]
+
+        if Key.BACKGROUND_COLOR in station:
+            self.background_color = station[Key.BACKGROUND_COLOR]
+        else:
+            self.background_color = config.Buttons.BACKGROUND_COLOR
+        
+        if Key.TEXT_COLOR in station:
+            self.text_color = station[Key.TEXT_COLOR]
+        else:
+            self.text_color = config.Buttons.TEXT_COLOR
 
 
 
@@ -52,7 +62,7 @@ class MiraAppplication:
         st_list = get_stations_list(stations)
         self.presets = []
         for st in st_list:
-            self.presets.append(Preset(st))
+            self.presets.append(Preset(config, st))
 
         # top level window
         app_width = config.Display.WIDTH
@@ -113,33 +123,33 @@ class MiraAppplication:
         bt_y = 0
         self.preset_buttons = []
         for ps in self.presets:
-           # To be able to size a button in terms of pixels (instead characters),
-           # we put every button in a surrounding box.
-           box_width = bt_width
-           bx = guizero.Box(
+            # To be able to size a button in terms of pixels (instead characters),
+            # we put every button in a surrounding box.
+            box_width = bt_width
+            bx = guizero.Box(
                         self.buttons_box,
                         grid=[bt_x, bt_y],
                         width=box_width,
                         height=bt_height
                         )
-           bt = guizero.PushButton(
+            bt = guizero.PushButton(
                         bx,
                         width="fill",
                         height="fill",
                         text=ps.name,
                         command=lambda:self._button_pressed(),
                         )
-           bt.font = config.Buttons.FONT[0]
-           bt.text_size = config.Buttons.FONT[1]
-           bt.bg = config.Buttons.BACKGROUND_COLOR
-           bt.text_color = config.Buttons.TEXT_COLOR
+            bt.font = config.Buttons.FONT[0]
+            bt.text_size = config.Buttons.FONT[1]
+            bt.bg = ps.background_color    
+            bt.text_color = ps.text_color
+            
+            self.preset_buttons.append(bt)
 
-           self.preset_buttons.append(bt)
-
-           bt_x += 1
-           if bt_x >= buttons_per_row:
-               bt_x = 0
-               bt_y += 1
+            bt_x += 1
+            if bt_x >= buttons_per_row:
+                bt_x = 0
+                bt_y += 1
 
         # remove title bar (works on Linux only)
         if platform.system() is 'Linux':
