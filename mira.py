@@ -68,6 +68,7 @@ class MiraAppplication:
     def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
         
         self.mpc_path = config.General.MPC_PATH
+        self.update_interval = config.Status.UPDATE_INTERVAL
 
         # build list of presets from predefined stations list
         st_list = get_stations_list(stations)
@@ -95,15 +96,13 @@ class MiraAppplication:
                                 self.status_box,
                                 font=config.Status.FONT[0],
                                 size=config.Status.FONT[1],
-                                color=config.Status.TEXT_COLOR,
-                                text="line 1"
+                                color=config.Status.TEXT_COLOR
                                 )
         self.status_text2 = guizero.Text(
                                 self.status_box,
                                 font=config.Status.FONT[0],
                                 size=config.Status.FONT[1],
-                                color=config.Status.TEXT_COLOR,
-                                text="line 2"
+                                color=config.Status.TEXT_COLOR
                                 )
 
         # spacing area (optional)
@@ -178,25 +177,46 @@ class MiraAppplication:
         self._execute_mpc(["add", preset.url])
         # play playlist
         self._execute_mpc(["play"])
+        self.status_text1.value = preset.name
         print("Done!")
 
 
-    def _execute_mpc(self, args: list[str]) -> None:
+    def _timer_event(self) -> None:
+        text = self._get_song_info()
+        parts = text.split(':')
+        if len(parts) > 1:
+            line2 = parts[1]
+        else:
+            line2 = text
+        self.status_text2.value = line2.strip()
+
+
+    def _execute_mpc(self, args: list[str]) -> str:
         
         if running_on_linux():
             mpc = self.mpc_path
-
             cmd = [mpc] + args
             print(f"executing: {cmd}")
-            subprocess.run(cmd)
+            process = subprocess.run(cmd, capture_output=True, text=True)
+            return process.stdout
         
-        elif running_on_windows():
+        if running_on_windows():
             print("not supported")
+            
+        return str()
 
-       
+
+    def _get_song_info(self) -> str:       
+        output = self._execute_mpc(["current"])
+        print(f"stdout: '{output}'")
+        return output
+
+
+
 
 
     def run(self) -> None:
+        self.app.repeat(self.update_interval, self._timer_event)
         self.app.display()
 
 
