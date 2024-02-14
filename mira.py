@@ -163,12 +163,6 @@ class MiraAppplication:
                 bt_x = 0
                 bt_y += 1
 
-    
-        # remove title bar (works on Linux only)
-        if running_on_linux():
-            root = self.app.tk
-            root.wm_attributes('-type', 'splash')
-
 
     def _button_pressed(self, preset: Preset) -> None:
         print(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
@@ -221,6 +215,7 @@ class MiraAppplication:
 
 
     def run(self) -> None:
+        self.app.set_full_screen()
         self.app.display()
 
 
