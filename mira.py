@@ -68,6 +68,7 @@ class MiraAppplication:
     def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
         
         self.mpc_path = config.General.MPC_PATH
+        self.initial_update_interval = config.Status.INITAL_UPDATE_INTERVAL
         self.update_interval = config.Status.UPDATE_INTERVAL
 
         # build list of presets from predefined stations list
@@ -171,6 +172,7 @@ class MiraAppplication:
 
     def _button_pressed(self, preset: Preset) -> None:
         print(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
+        self.app.cancel(self._timer_event)
         # clear playlist
         self._execute_mpc(["clear"])
         # add url
@@ -178,6 +180,8 @@ class MiraAppplication:
         # play playlist
         self._execute_mpc(["play"])
         self.status_text1.value = preset.name
+        self.status_text2.value = ""
+        self.app.after(self.initial_update_interval, self._timer_event)
         print("Done!")
 
 
@@ -189,6 +193,7 @@ class MiraAppplication:
         else:
             line2 = text
         self.status_text2.value = line2.strip()
+        self.app.after(self.update_interval, self._timer_event)
 
 
     def _execute_mpc(self, args: list[str]) -> str:
@@ -216,7 +221,6 @@ class MiraAppplication:
 
 
     def run(self) -> None:
-        self.app.repeat(self.update_interval, self._timer_event)
         self.app.display()
 
 

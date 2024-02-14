@@ -27,7 +27,9 @@ class MiraConfig:
         TEXT_COLOR = "black"
 
         # Status update in milliseconds
+        INITAL_UPDATE_INTERVAL = 4000
         UPDATE_INTERVAL = 2000
+        
 
     class Spacing:
         """ spacing area """
