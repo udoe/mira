@@ -15,6 +15,7 @@ from typing import Any, AnyStr
 import platform
 import argparse
 import guizero
+import subprocess
 
 from mira_config import MiraConfig
 from mira_stations import MiraStations
@@ -31,6 +32,13 @@ def get_stations_list(stations: MiraStations) -> list:
 
     return st_list
 
+
+def running_on_linux() -> bool:
+    return platform.system() == 'Linux'
+
+
+def running_on_windows() -> bool:
+    return platform.system() == 'Windows'
 
 
 
@@ -58,6 +66,9 @@ class MiraAppplication:
     """ Top level application """
 
     def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
+        
+        self.mpc_path = config.General.MPC_PATH
+
         # build list of presets from predefined stations list
         st_list = get_stations_list(stations)
         self.presets = []
@@ -152,14 +163,37 @@ class MiraAppplication:
                 bt_x = 0
                 bt_y += 1
 
+    
         # remove title bar (works on Linux only)
-        if platform.system() == 'Linux':
+        if running_on_linux():
             root = self.app.tk
             root.wm_attributes('-type', 'splash')
 
 
     def _button_pressed(self, preset: Preset) -> None:
-        print("button '{}' was pressed".format(preset.name))
+        print(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
+        # clear playlist
+        self._execute_mpc(["clear"])
+        # add url
+        self._execute_mpc(["add", preset.url])
+        # play playlist
+        self._execute_mpc(["play"])
+        print("Done!")
+
+
+    def _execute_mpc(self, args: list[str]) -> None:
+        
+        if running_on_linux():
+            mpc = self.mpc_path
+
+            cmd = [mpc] + args
+            print(f"executing: {cmd}")
+            subprocess.run(cmd)
+        
+        elif running_on_windows():
+            print("not supported")
+
+       
 
 
     def run(self) -> None:

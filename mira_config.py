@@ -6,6 +6,9 @@ Minimalist Internet Radio - config settings
 class MiraConfig:
     """ config settings """
 
+    class General:
+        MPC_PATH = "/usr/bin/mpc"
+
     class Display:
         """ display properties """
         WIDTH = 800
