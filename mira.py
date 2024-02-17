@@ -191,28 +191,22 @@ class MiraAppplication:
         self.app.after(self.update_interval, self._timer_event)
 
 
+    def _get_song_info(self) -> str:       
+            output = self._execute_mpc(["current"])
+            logging.info(f"stdout: '{output}'")
+            return output
+
+
     def _execute_mpc(self, args: list[str]) -> str:
-        
-        if running_on_linux():
+        try:    
             mpc = self.mpc_path
             cmd = [mpc] + args
             logging.info(f"executing: {cmd}")
             process = subprocess.run(cmd, capture_output=True, text=True)
             return process.stdout
-        
-        if running_on_windows():
-            logging.error("not supported")
-            
-        return str()
-
-
-    def _get_song_info(self) -> str:       
-        output = self._execute_mpc(["current"])
-        logging.info(f"stdout: '{output}'")
-        return output
-
-
-
+        except Exception as e:
+            logging.error(f"Failed to execute {cmd} : {e}")
+            return str()
 
 
     def run(self) -> None:
