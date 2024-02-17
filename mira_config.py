@@ -8,6 +8,7 @@ class MiraConfig:
 
     class General:
         MPC_PATH = "/usr/bin/mpc"
+        SAVED_STATE_FILENAME = "mira_state.json"
 
     class Display:
         """ display properties """

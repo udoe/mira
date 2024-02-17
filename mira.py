@@ -17,6 +17,7 @@ import argparse
 import guizero
 import subprocess
 import logging
+import json
 
 from mira_config import MiraConfig
 from mira_stations import MiraStations
@@ -46,7 +47,8 @@ def running_on_windows() -> bool:
 class Preset:
     """ A predefined internet radio station """
 
-    def __init__(self, config: MiraConfig, station: dict) -> None:
+    def __init__(self, number: int, config: MiraConfig, station: dict) -> None:
+        self.number = number
         self.name = station[Key.NAME]
         self.url = station[Key.URL]
 
@@ -69,14 +71,17 @@ class MiraAppplication:
     def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
         
         self.mpc_path = config.General.MPC_PATH
+        self.saved_state_filename = config.General.SAVED_STATE_FILENAME
         self.initial_update_interval = config.Status.INITAL_UPDATE_INTERVAL
         self.update_interval = config.Status.UPDATE_INTERVAL
 
         # build list of presets from predefined stations list
         st_list = get_stations_list(stations)
         self.presets = []
+        n = 0
         for st in st_list:
-            self.presets.append(Preset(config, st))
+            self.presets.append(Preset(n, config, st))
+            n += 1
 
         # top level window
         app_width = config.Display.WIDTH
@@ -167,17 +172,30 @@ class MiraAppplication:
 
     def _button_pressed(self, preset: Preset) -> None:
         logging.info(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
+        
+        self._play(preset)
+
+        # save state
+        self._save_last_played(preset)        
+
+
+    def _play(self, preset: Preset) -> None:    
+        # stop refresh timer
         self.app.cancel(self._timer_event)
+        
         # clear playlist
         self._execute_mpc(["clear"])
         # add url
         self._execute_mpc(["add", preset.url])
         # play playlist
         self._execute_mpc(["play"])
+        
+        # update status line
         self.status_text1.value = preset.name
         self.status_text2.value = ""
+
+        # start refresh timer
         self.app.after(self.initial_update_interval, self._timer_event)
-        logging.info("Done!")
 
 
     def _timer_event(self) -> None:
@@ -209,7 +227,47 @@ class MiraAppplication:
             return str()
 
 
+    def _load_last_played(self) -> Preset|None:
+        try:
+            with open(self.saved_state_filename, "r") as infile:
+                data = json.load(infile)
+        except Exception as e:
+            logging.info(f"State file doesn't exist yet. {e}")
+            return None
+
+        if Key.PRESET_NUMBER in data:
+            number = data[Key.PRESET_NUMBER]
+            if number < len(self.presets):
+                preset = self.presets[number]
+                return preset
+        
+        return None
+
+
+    def _save_last_played(self, preset: Preset) -> None:
+        data = {
+            Key.PRESET_NUMBER : preset.number,
+            "station_name" : preset.name
+        }
+        try:
+            with open(self.saved_state_filename, "w") as outfile:
+                json.dump(data, outfile)
+        except Exception as e:
+            logging.info(f"Couldn't save state. {e}")
+            
+
+    def _restore_last_played(self) -> None:
+        preset = self._load_last_played()
+        if preset is not None:
+            self._play(preset)
+        else:
+            self.status_text1.value = "No preset active."
+
+
+
     def run(self, fullscreen: bool) -> None:
+        self._restore_last_played()
+
         if fullscreen:
             self.app.set_full_screen()
         
