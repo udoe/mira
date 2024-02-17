@@ -209,24 +209,34 @@ class MiraAppplication:
             return str()
 
 
-    def run(self) -> None:
-        self.app.set_full_screen()
+    def run(self, fullscreen: bool) -> None:
+        if fullscreen:
+            self.app.set_full_screen()
+        
         self.app.display()
 
 
 
 
-def main():
+def main(fullscreen: bool):
     logging.basicConfig(
         filename='mira.log', 
         encoding='utf-8', 
         level=logging.DEBUG, 
         format='%(asctime)s - %(levelname)s - %(message)s'
         )
-
+    
     app = MiraAppplication(MiraConfig, MiraStations)
-    app.run()
+    app.run(fullscreen)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--fullscreen', 
+        action='store_true',
+        help='show the app in fullscreen mode'
+        )
+    args = parser.parse_args()
+
+    main(args.fullscreen)
