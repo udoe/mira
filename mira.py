@@ -16,6 +16,7 @@ import platform
 import argparse
 import guizero
 import subprocess
+import logging
 
 from mira_config import MiraConfig
 from mira_stations import MiraStations
@@ -165,7 +166,7 @@ class MiraAppplication:
 
 
     def _button_pressed(self, preset: Preset) -> None:
-        print(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
+        logging.info(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
         self.app.cancel(self._timer_event)
         # clear playlist
         self._execute_mpc(["clear"])
@@ -176,7 +177,7 @@ class MiraAppplication:
         self.status_text1.value = preset.name
         self.status_text2.value = ""
         self.app.after(self.initial_update_interval, self._timer_event)
-        print("Done!")
+        logging.info("Done!")
 
 
     def _timer_event(self) -> None:
@@ -195,19 +196,19 @@ class MiraAppplication:
         if running_on_linux():
             mpc = self.mpc_path
             cmd = [mpc] + args
-            print(f"executing: {cmd}")
+            logging.info(f"executing: {cmd}")
             process = subprocess.run(cmd, capture_output=True, text=True)
             return process.stdout
         
         if running_on_windows():
-            print("not supported")
+            logging.error("not supported")
             
         return str()
 
 
     def _get_song_info(self) -> str:       
         output = self._execute_mpc(["current"])
-        print(f"stdout: '{output}'")
+        logging.info(f"stdout: '{output}'")
         return output
 
 
@@ -222,6 +223,13 @@ class MiraAppplication:
 
 
 def main():
+    logging.basicConfig(
+        filename='mira.log', 
+        encoding='utf-8', 
+        level=logging.DEBUG, 
+        format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+
     app = MiraAppplication(MiraConfig, MiraStations)
     app.run()
 
