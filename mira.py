@@ -75,6 +75,8 @@ class MiraAppplication:
         self.initial_update_interval = config.Status.INITAL_UPDATE_INTERVAL
         self.update_interval = config.Status.UPDATE_INTERVAL
 
+        self.timer_running = False
+
         # build list of presets from predefined stations list
         st_list = get_stations_list(stations)
         self.presets = []
@@ -91,6 +93,58 @@ class MiraAppplication:
                             width=app_width,
                             height=app_height
                             )
+        # title bar
+        self.title_bar = guizero.Box(
+                                self.app,
+                                align="top",
+                                width="fill",
+                                height=40
+                                )
+        self.title_bar_left = guizero.Box(
+                                self.title_bar,
+                                align="left",
+                                width=int(app_width/3),
+                                height=20
+                                )
+        self.title_bar_center = guizero.Box(
+                                self.title_bar,
+                                align="left",
+                                width=int(app_width/3),
+                                height=20
+                                )
+        self.title_bar_right = guizero.Box(
+                                self.title_bar,
+                                align="left",
+                                width=int(app_width/3),
+                                height=20
+                                )
+        self.title_bar_date = guizero.Text(
+                                self.title_bar_left,
+                                align="left",
+                                text="Date"
+                                #width=int(app_width/3)
+                                #font=config.Status.FONT[0],
+                                #size=config.Status.FONT[1],
+                                #color=config.Status.TEXT_COLOR
+                                )
+        self.title_bar_time = guizero.Text(
+                                self.title_bar_center,
+                                #align="",
+                                text="Time"
+                                #width=int(app_width/3)
+                                #font=config.Status.FONT[0],
+                                #size=config.Status.FONT[1],
+                                #color=config.Status.TEXT_COLOR
+                                )
+        self.title_bar_signal = guizero.Text(
+                                self.title_bar_right,
+                                align="right",
+                                text="Signal"
+                                #width=int(app_width/3)
+                                #font=config.Status.FONT[0],
+                                #size=config.Status.FONT[1],
+                                #color=config.Status.TEXT_COLOR
+                                )
 
         # status pane
         self.status_box = guizero.Box(
@@ -181,7 +235,9 @@ class MiraAppplication:
 
     def _play(self, preset: Preset) -> None:    
         # stop refresh timer
-        self.app.cancel(self._timer_event)
+        if self.timer_running:
+            self.app.cancel(self._timer_event)
+            self.timer_running = False
         
         # clear playlist
         self._execute_mpc(["clear"])
@@ -196,9 +252,15 @@ class MiraAppplication:
 
         # start refresh timer
         self.app.after(self.initial_update_interval, self._timer_event)
+        self.timer_running = True
 
 
     def _timer_event(self) -> None:
+        self._update_status()
+        self.app.after(self.update_interval, self._timer_event)
+
+
+    def _update_status(self) -> None:
         text = self._get_song_info()
         parts = text.split(':')
         if len(parts) > 1:
@@ -206,8 +268,7 @@ class MiraAppplication:
         else:
             line2 = text
         self.status_text2.value = line2.strip()
-        self.app.after(self.update_interval, self._timer_event)
-
+        
 
     def _get_song_info(self) -> str:       
             output = self._execute_mpc(["current"])
