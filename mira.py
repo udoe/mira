@@ -146,7 +146,7 @@ class MiraAppplication:
                                 )
         self.title_bar_signal = guizero.Text(
                                 self.title_bar_right,
-                                align="right",
+                                align="right"
                                 )
 
     
@@ -268,7 +268,7 @@ class MiraAppplication:
     
     def _on_title_timer(self) -> None:
         self._update_title_bar()
-
+        
 
     def _update_title_bar(self) -> None:
         dt = datetime.datetime.now()
@@ -278,15 +278,32 @@ class MiraAppplication:
         else:
             time = dt.strftime('%I:%M %p')
 
-        self.title_bar_date.value = date
+        self.title_bar_date.value = " " + date
         self.title_bar_time.value = time
 
+        quality = self._get_wifi_quality()
+        self.title_bar_signal.value = f"WiFi: {quality}%" + " "
 
-    def _get_wifi_quality(self) -> None:
+
+    def _get_wifi_quality(self) -> int:
         cmd = ["iwconfig", "wlan0"]
         process = subprocess.run(cmd, capture_output=True, text=True)
         output = process.stdout
-        
+        # Link Quality=50/70  Signal level=-60 dBm
+        search_string = "Link Quality="
+        for line in output.splitlines():
+            pos = line.find(search_string)
+            if pos >= 0:
+                start = pos + len(search_string)
+                end = line.find(" ", start)
+                value = line[start:end]
+                value_list = value.split('/')
+                sig_qual = int(value_list[0])
+                max_qual = int(value_list[1])
+                quality = int(round((sig_qual * 100) / max_qual, 0))
+                return quality
+        return 0
+
 
     def _update_status(self) -> None:
         text = self._get_song_info()
