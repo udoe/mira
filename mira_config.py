@@ -15,6 +15,11 @@ class MiraConfig:
         WIDTH = 800
         HEIGHT = 480
 
+    class Title:
+        USE_24h_TIME_FORMAT = True
+        BACKGROUND_COLOR = "lightblue"
+        UPDATE_INTERVAL = 5000
+
     class Status:
         """ status pane """
         FONT = ("Helvetica", 16)
