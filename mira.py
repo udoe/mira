@@ -282,6 +282,12 @@ class MiraAppplication:
         self.title_bar_time.value = time
 
 
+    def _get_wifi_quality(self) -> None:
+        cmd = ["iwconfig", "wlan0"]
+        process = subprocess.run(cmd, capture_output=True, text=True)
+        output = process.stdout
+        
+
     def _update_status(self) -> None:
         text = self._get_song_info()
         parts = text.split(':')
