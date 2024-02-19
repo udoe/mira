@@ -18,8 +18,9 @@ import guizero
 import subprocess
 import logging
 import json
+import datetime
 
-from mira_config import MiraConfig
+from mira_config import MiraConfig 
 from mira_stations import MiraStations
 from constants import Key
 
@@ -68,13 +69,10 @@ class Preset:
 class MiraAppplication:
     """ Top level application """
 
-    def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
-        
-        self.mpc_path = config.General.MPC_PATH
-        self.saved_state_filename = config.General.SAVED_STATE_FILENAME
-        self.initial_update_interval = config.Status.INITAL_UPDATE_INTERVAL
-        self.update_interval = config.Status.UPDATE_INTERVAL
 
+    def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
+
+        self.config = config
         self.timer_running = False
 
         # build list of presets from predefined stations list
@@ -93,81 +91,88 @@ class MiraAppplication:
                             width=app_width,
                             height=app_height
                             )
+        
+
         # title bar
+        self._create_title_bar()
+
+
+        # status pane
+        self._create_status_box()
+
+
+        # spacing area (optional)
+        self._create_spacing_area()
+
+
+        # box that contains the buttons
+        self._create_buttons()
+    
+    
+    # Functions:
+    def _create_title_bar(self) -> None:
         self.title_bar = guizero.Box(
                                 self.app,
                                 align="top",
                                 width="fill",
                                 height=40
                                 )
+        self.title_bar.bg = self.config.Title.BACKGROUND_COLOR
         self.title_bar_left = guizero.Box(
                                 self.title_bar,
                                 align="left",
-                                width=int(app_width/3),
+                                width=int(self.config.Display.WIDTH/3),
                                 height=20
                                 )
         self.title_bar_center = guizero.Box(
                                 self.title_bar,
                                 align="left",
-                                width=int(app_width/3),
+                                width=int(self.config.Display.WIDTH/3),
                                 height=20
                                 )
         self.title_bar_right = guizero.Box(
                                 self.title_bar,
                                 align="left",
-                                width=int(app_width/3),
+                                width=int(self.config.Display.WIDTH/3),
                                 height=20
                                 )
         self.title_bar_date = guizero.Text(
                                 self.title_bar_left,
-                                align="left",
-                                text="Date"
-                                #width=int(app_width/3)
-                                #font=config.Status.FONT[0],
-                                #size=config.Status.FONT[1],
-                                #color=config.Status.TEXT_COLOR
+                                align="left"
                                 )
         self.title_bar_time = guizero.Text(
                                 self.title_bar_center,
-                                #align="",
                                 text="Time"
-                                #width=int(app_width/3)
-                                #font=config.Status.FONT[0],
-                                #size=config.Status.FONT[1],
-                                #color=config.Status.TEXT_COLOR
                                 )
         self.title_bar_signal = guizero.Text(
                                 self.title_bar_right,
                                 align="right",
-                                text="Signal"
-                                #width=int(app_width/3)
-                                #font=config.Status.FONT[0],
-                                #size=config.Status.FONT[1],
-                                #color=config.Status.TEXT_COLOR
                                 )
 
-        # status pane
+    
+    def _create_status_box(self) -> None:
         self.status_box = guizero.Box(
                                 self.app,
                                 align="top",
                                 width="fill"
                                 )
-        self.status_box.bg = config.Status.BACKGROUND_COLOR
+        self.status_box.bg = self.config.Status.BACKGROUND_COLOR
         self.status_text1 = guizero.Text(
                                 self.status_box,
-                                font=config.Status.FONT[0],
-                                size=config.Status.FONT[1],
-                                color=config.Status.TEXT_COLOR
+                                font=self.config.Status.FONT[0],
+                                size=self.config.Status.FONT[1],
+                                color=self.config.Status.TEXT_COLOR
                                 )
         self.status_text2 = guizero.Text(
                                 self.status_box,
-                                font=config.Status.FONT[0],
-                                size=config.Status.FONT[1],
-                                color=config.Status.TEXT_COLOR
+                                font=self.config.Status.FONT[0],
+                                size=self.config.Status.FONT[1],
+                                color=self.config.Status.TEXT_COLOR
                                 )
 
-        # spacing area (optional)
-        spacing_height = int(config.Spacing.HEIGHT)
+
+    def _create_spacing_area(self) -> None:
+        spacing_height = int(self.config.Spacing.HEIGHT)
         if spacing_height > 0:
             self.spacing_box = guizero.Box(
                                     self.app,
@@ -175,21 +180,22 @@ class MiraAppplication:
                                     width="fill",
                                     height=spacing_height
                                     )
-            self.spacing_box.bg = config.Spacing.BACKGROUND_COLOR
+            self.spacing_box.bg = self.config.Spacing.BACKGROUND_COLOR
 
-        # box that contains the buttons
+
+    def _create_buttons(self) -> None:
         self.buttons_box = guizero.Box(
                                 self.app,
                                 align="top",
-                                width=app_width,
+                                width=self.config.Display.WIDTH,
                                 height="fill",
                                 layout="grid"
                                 )
 
         # create a button for each preset
-        buttons_per_row = int(config.Buttons.NUM_BUTTONS_PER_ROW)
-        bt_width = int(app_width / buttons_per_row)
-        bt_height = int(config.Buttons.BUTTON_HEIGHT)
+        buttons_per_row = int(self.config.Buttons.NUM_BUTTONS_PER_ROW)
+        bt_width = int(self.config.Display.WIDTH / buttons_per_row)
+        bt_height = int(self.config.Buttons.BUTTON_HEIGHT)
         bt_x = 0
         bt_y = 0
         self.preset_buttons = []
@@ -211,8 +217,8 @@ class MiraAppplication:
                         command=self._button_pressed,
                         args=[ps],
                         )
-            bt.font = config.Buttons.FONT[0]
-            bt.text_size = config.Buttons.FONT[1]
+            bt.font = self.config.Buttons.FONT[0]
+            bt.text_size = self.config.Buttons.FONT[1]
             bt.bg = ps.background_color    
             bt.text_color = ps.text_color
             
@@ -236,7 +242,7 @@ class MiraAppplication:
     def _play(self, preset: Preset) -> None:    
         # stop refresh timer
         if self.timer_running:
-            self.app.cancel(self._timer_event)
+            self.app.cancel(self._on_status_timer)
             self.timer_running = False
         
         # clear playlist
@@ -251,13 +257,29 @@ class MiraAppplication:
         self.status_text2.value = ""
 
         # start refresh timer
-        self.app.after(self.initial_update_interval, self._timer_event)
+        self.app.after(self.config.Status.INITAL_UPDATE_INTERVAL, self._on_status_timer)
         self.timer_running = True
 
 
-    def _timer_event(self) -> None:
+    def _on_status_timer(self) -> None:
         self._update_status()
-        self.app.after(self.update_interval, self._timer_event)
+        self.app.after(self.config.Status.UPDATE_INTERVAL, self._on_status_timer)
+
+    
+    def _on_title_timer(self) -> None:
+        self._update_title_bar()
+
+
+    def _update_title_bar(self) -> None:
+        dt = datetime.datetime.now()
+        date = dt.strftime('%a %d %b %Y')
+        if self.config.Title.USE_24h_TIME_FORMAT:
+            time = dt.strftime('%H:%M')
+        else:
+            time = dt.strftime('%I:%M %p')
+
+        self.title_bar_date.value = date
+        self.title_bar_time.value = time
 
 
     def _update_status(self) -> None:
@@ -268,7 +290,7 @@ class MiraAppplication:
         else:
             line2 = text
         self.status_text2.value = line2.strip()
-        
+
 
     def _get_song_info(self) -> str:       
             output = self._execute_mpc(["current"])
@@ -278,7 +300,7 @@ class MiraAppplication:
 
     def _execute_mpc(self, args: list[str]) -> str:
         try:    
-            mpc = self.mpc_path
+            mpc = self.config.General.MPC_PATH
             cmd = [mpc] + args
             logging.info(f"executing: {cmd}")
             process = subprocess.run(cmd, capture_output=True, text=True)
@@ -290,7 +312,7 @@ class MiraAppplication:
 
     def _load_last_played(self) -> Preset|None:
         try:
-            with open(self.saved_state_filename, "r") as infile:
+            with open(self.config.General.SAVED_STATE_FILENAME, "r") as infile:
                 data = json.load(infile)
         except Exception as e:
             logging.info(f"State file doesn't exist yet. {e}")
@@ -311,7 +333,7 @@ class MiraAppplication:
             "station_name" : preset.name
         }
         try:
-            with open(self.saved_state_filename, "w") as outfile:
+            with open(self.config.General.SAVED_STATE_FILENAME, "w") as outfile:
                 json.dump(data, outfile)
         except Exception as e:
             logging.info(f"Couldn't save state. {e}")
@@ -325,12 +347,14 @@ class MiraAppplication:
             self.status_text1.value = "No preset active."
 
 
-
     def run(self, fullscreen: bool) -> None:
         self._restore_last_played()
 
         if fullscreen:
             self.app.set_full_screen()
+
+        self._update_title_bar()
+        self.app.repeat(self.config.Title.UPDATE_INTERVAL, self._on_title_timer)
         
         self.app.display()
 

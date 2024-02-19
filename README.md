@@ -47,3 +47,16 @@ Autostart
 3. save and exit
 4. reboot
 
+
+
+HifiBerry 
+1. for available driver modules run
+    ls -l /boot/firmware/overlays/hifiberry*
+2. edit /boot/firmware/config.txt
+3. add to [all]
+    dtoverlay=hifiberry-dacplus        (the module that matches your specific HAT model)
+4. save and exit
+5. Reboot
+6. repeat steps from Setup 3, 4 and 6
+
+
