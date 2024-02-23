@@ -19,11 +19,17 @@ import subprocess
 import logging
 import json
 import datetime
+import pathlib
 
-from mira_config import MiraConfig 
+from mira_config import MiraConfig
 from mira_stations import MiraStations
 from constants import Key
 
+
+
+def ensure_dir_exists(filepath: pathlib.Path) -> None:
+    p = filepath.parent
+    p.mkdir(parents=True, exist_ok=True)
 
 
 def get_stations_list(stations: MiraStations) -> list:
@@ -34,14 +40,6 @@ def get_stations_list(stations: MiraStations) -> list:
             st_list.append(st)
 
     return st_list
-
-
-def running_on_linux() -> bool:
-    return platform.system() == 'Linux'
-
-
-def running_on_windows() -> bool:
-    return platform.system() == 'Windows'
 
 
 
@@ -57,7 +55,7 @@ class Preset:
             self.background_color = station[Key.BACKGROUND_COLOR]
         else:
             self.background_color = config.Buttons.BACKGROUND_COLOR
-        
+
         if Key.TEXT_COLOR in station:
             self.text_color = station[Key.TEXT_COLOR]
         else:
@@ -91,7 +89,7 @@ class MiraAppplication:
                             width=app_width,
                             height=app_height
                             )
-        
+
 
         # title bar
         self._create_title_bar()
@@ -107,8 +105,8 @@ class MiraAppplication:
 
         # box that contains the buttons
         self._create_buttons()
-    
-    
+
+
     # Functions:
     def _create_title_bar(self) -> None:
         self.title_bar = guizero.Box(
@@ -149,7 +147,7 @@ class MiraAppplication:
                                 align="right"
                                 )
 
-    
+
     def _create_status_box(self) -> None:
         self.status_box = guizero.Box(
                                 self.app,
@@ -219,9 +217,9 @@ class MiraAppplication:
                         )
             bt.font = self.config.Buttons.FONT[0]
             bt.text_size = self.config.Buttons.FONT[1]
-            bt.bg = ps.background_color    
+            bt.bg = ps.background_color
             bt.text_color = ps.text_color
-            
+
             self.preset_buttons.append(bt)
 
             bt_x += 1
@@ -232,26 +230,26 @@ class MiraAppplication:
 
     def _button_pressed(self, preset: Preset) -> None:
         logging.info(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
-        
+
         self._play(preset)
 
         # save state
-        self._save_last_played(preset)        
+        self._save_last_played(preset)
 
 
-    def _play(self, preset: Preset) -> None:    
+    def _play(self, preset: Preset) -> None:
         # stop refresh timer
         if self.timer_running:
             self.app.cancel(self._on_status_timer)
             self.timer_running = False
-        
+
         # clear playlist
         self._execute_mpc(["clear"])
         # add url
         self._execute_mpc(["add", preset.url])
         # play playlist
         self._execute_mpc(["play"])
-        
+
         # update status line
         self.status_text1.value = preset.name
         self.status_text2.value = ""
@@ -265,10 +263,10 @@ class MiraAppplication:
         self._update_status()
         self.app.after(self.config.Status.UPDATE_INTERVAL, self._on_status_timer)
 
-    
+
     def _on_title_timer(self) -> None:
         self._update_title_bar()
-        
+
 
     def _update_title_bar(self) -> None:
         dt = datetime.datetime.now()
@@ -282,13 +280,21 @@ class MiraAppplication:
         self.title_bar_time.value = time
 
         quality = self._get_wifi_quality()
-        self.title_bar_signal.value = f"WiFi: {quality}%" + " "
+        if quality >= 0:
+            self.title_bar_signal.value = f"WiFi: {quality}%" + " "
+        else:
+            self.title_bar_signal.value = ""
 
 
     def _get_wifi_quality(self) -> int:
-        cmd = ["iwconfig", "wlan0"]
-        process = subprocess.run(cmd, capture_output=True, text=True)
-        output = process.stdout
+        try:
+            cmd = ["iwconfig", "wlan0"]
+            process = subprocess.run(cmd, capture_output=True, text=True)
+            output = process.stdout
+        except Exception as e:
+            logging.error(f"Failed to execute {cmd} : {e}")
+            return -1
+
         # Link Quality=50/70  Signal level=-60 dBm
         search_string = "Link Quality="
         for line in output.splitlines():
@@ -296,13 +302,16 @@ class MiraAppplication:
             if pos >= 0:
                 start = pos + len(search_string)
                 end = line.find(" ", start)
-                value = line[start:end]
-                value_list = value.split('/')
-                sig_qual = int(value_list[0])
-                max_qual = int(value_list[1])
-                quality = int(round((sig_qual * 100) / max_qual, 0))
-                return quality
-        return 0
+                if end >= 0:
+                    value = line[start:end]
+                    value_list = value.split('/')
+                    if len(value_list) >= 2:
+                        sig_qual = int(value_list[0])
+                        max_qual = int(value_list[1])
+                        quality = int(round((sig_qual * 100) / max_qual, 0))
+                        return quality
+
+        return -1
 
 
     def _update_status(self) -> None:
@@ -315,14 +324,14 @@ class MiraAppplication:
         self.status_text2.value = line2.strip()
 
 
-    def _get_song_info(self) -> str:       
+    def _get_song_info(self) -> str:
             output = self._execute_mpc(["current"])
-            logging.info(f"stdout: '{output}'")
+            logging.info(f"mpc returned: '{output}'")
             return output
 
 
     def _execute_mpc(self, args: list[str]) -> str:
-        try:    
+        try:
             mpc = self.config.General.MPC_PATH
             cmd = [mpc] + args
             logging.info(f"executing: {cmd}")
@@ -333,9 +342,16 @@ class MiraAppplication:
             return str()
 
 
+    def _get_saved_state_file(self) -> pathlib.Path:
+        filepath = pathlib.Path(self.config.General.SAVED_STATE_FILE)
+        filepath = filepath.expanduser()
+        return filepath
+
+
     def _load_last_played(self) -> Preset|None:
+        filepath = self._get_saved_state_file()
         try:
-            with open(self.config.General.SAVED_STATE_FILENAME, "r") as infile:
+            with open(filepath, "r") as infile:
                 data = json.load(infile)
         except Exception as e:
             logging.info(f"State file doesn't exist yet. {e}")
@@ -346,7 +362,7 @@ class MiraAppplication:
             if number < len(self.presets):
                 preset = self.presets[number]
                 return preset
-        
+
         return None
 
 
@@ -355,12 +371,14 @@ class MiraAppplication:
             Key.PRESET_NUMBER : preset.number,
             "station_name" : preset.name
         }
+        filepath = self._get_saved_state_file()
+        ensure_dir_exists(filepath)
         try:
-            with open(self.config.General.SAVED_STATE_FILENAME, "w") as outfile:
+            with open(filepath, "w") as outfile:
                 json.dump(data, outfile)
         except Exception as e:
-            logging.info(f"Couldn't save state. {e}")
-            
+            logging.error(f"Couldn't save state. {e}")
+
 
     def _restore_last_played(self) -> None:
         preset = self._load_last_played()
@@ -378,20 +396,26 @@ class MiraAppplication:
 
         self._update_title_bar()
         self.app.repeat(self.config.Title.UPDATE_INTERVAL, self._on_title_timer)
-        
+
         self.app.display()
 
 
 
 
 def main(fullscreen: bool):
+    logfile = pathlib.Path(MiraConfig.General.LOGFILE)
+    logfile = logfile.expanduser()
+    ensure_dir_exists(logfile)
+
     logging.basicConfig(
-        filename='mira.log', 
-        encoding='utf-8', 
-        level=logging.DEBUG, 
+        filename=str(logfile),
+        encoding='utf-8',
+        level=logging.WARNING,
         format='%(asctime)s - %(levelname)s - %(message)s'
         )
-    
+    if MiraConfig.General.LOGLEVEL_DEBUG:
+        logging.getLogger().setLevel(logging.DEBUG)
+
     app = MiraAppplication(MiraConfig, MiraStations)
     app.run(fullscreen)
 
@@ -399,7 +423,7 @@ def main(fullscreen: bool):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--fullscreen', 
+        '--fullscreen',
         action='store_true',
         help='show the app in fullscreen mode'
         )

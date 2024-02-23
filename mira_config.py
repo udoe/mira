@@ -1,4 +1,3 @@
-
 """
 Minimalist Internet Radio - config settings
 """
@@ -8,7 +7,9 @@ class MiraConfig:
 
     class General:
         MPC_PATH = "/usr/bin/mpc"
-        SAVED_STATE_FILENAME = "mira_state.json"
+        SAVED_STATE_FILE = "~/.mira/mira_state.json"
+        LOGFILE = "~/.mira/mira.log"
+        LOGLEVEL_DEBUG = False
 
     class Display:
         """ display properties """
@@ -35,7 +36,7 @@ class MiraConfig:
         # Status update in milliseconds
         INITAL_UPDATE_INTERVAL = 4000
         UPDATE_INTERVAL = 2000
-        
+
 
     class Spacing:
         """ spacing area """
