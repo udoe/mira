@@ -19,7 +19,7 @@ class MiraConfig:
     class Title:
         HEIGHT = 40
         USE_24h_TIME_FORMAT = True
-        BACKGROUND_COLOR = "lightblue"
+        BACKGROUND_COLOR = "green yellow"
         UPDATE_INTERVAL = 5000
 
     class Status:
@@ -28,7 +28,7 @@ class MiraConfig:
         FONT_LINE2 = ("Helvetica", 24)
 
         # Specify a color name, for a complete list, check out https://wiki.tcl.tk/37701
-        BACKGROUND_COLOR = "yellow"
+        BACKGROUND_COLOR = "yellow2"
         # Alternatively, specify (R, G, B) values, 0..255.
         #BACKGROUND_COLOR = (255, 0, 0)
 
@@ -43,7 +43,7 @@ class MiraConfig:
     class Spacing:
         """ spacing area """
         HEIGHT = 20
-        BACKGROUND_COLOR = "grey"
+        BACKGROUND_COLOR = "LightYellow3"
 
     class Buttons:
         """ preset buttons """
@@ -53,7 +53,10 @@ class MiraConfig:
 
         FONT = ("Helvetica", 24)
 
-        BACKGROUND_COLOR = "cornflower blue"
+        #BACKGROUND_COLOR = "PaleGreen2"
+        BACKGROUND_COLOR = "#8ce68c"
         TEXT_COLOR = "black"
+        
+        PRESSED_BUTTON_COLOR = "#6db36d"
 
 
