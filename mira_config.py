@@ -25,7 +25,7 @@ class MiraConfig:
     class Status:
         """ status pane """
         FONT_LINE1 = ("Helvetica", 26)
-        FONT_LINE2 = ("Helvetica", 24)
+        FONT_LINE2 = ("Helvetica", 22)
 
         # Specify a color name, for a complete list, check out https://wiki.tcl.tk/37701
         BACKGROUND_COLOR = "yellow2"
