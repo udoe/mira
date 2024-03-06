@@ -89,19 +89,14 @@ class MiraAppplication:
                             width=app_width,
                             height=app_height
                             )
-
-
         # title bar
         self._create_title_bar()
-
 
         # status pane
         self._create_status_box(st_list)
 
-
         # spacing area (optional)
         self._create_spacing_area()
-
 
         # box that contains the buttons
         self._create_buttons()
@@ -250,23 +245,19 @@ class MiraAppplication:
 
         self._play(preset)
 
-        #change color of pressed button
-        self._change_btn_color(preset)
+        # change color of pressed button
+        self._update_btn_color(preset)
 
         # save state
         self._save_last_played(preset)
 
 
-    def _change_btn_color(self, preset: Preset) -> None:
-        i = 0
-        for ps in self.preset_buttons:
-            if i == preset.number:
-                ps.bg = self.config.Buttons.PRESSED_BUTTON_COLOR
+    def _update_btn_color(self, preset: Preset) -> None:
+        for ps in self.presets:
+            if ps.number == preset.number:
+                self.preset_buttons[ps.number].bg = self.config.Buttons.PRESSED_BUTTON_COLOR
             else:
-                ps.bg = self.config.Buttons.BACKGROUND_COLOR
-            self.preset_buttons[i] = ps
-            i += 1
-
+                self.preset_buttons[ps.number].bg = self.config.Buttons.BACKGROUND_COLOR
 
 
     def _play(self, preset: Preset) -> None:
@@ -416,7 +407,7 @@ class MiraAppplication:
         preset = self._load_last_played()
         if preset is not None:
             self._play(preset)
-            self._change_btn_color(preset)
+            self._update_btn_color(preset)
         else:
             self.status_text1.value = "No preset active."
 
