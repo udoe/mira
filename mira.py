@@ -96,7 +96,7 @@ class MiraAppplication:
 
 
         # status pane
-        self._create_status_box()
+        self._create_status_box(st_list)
 
 
         # spacing area (optional)
@@ -113,7 +113,7 @@ class MiraAppplication:
                                 self.app,
                                 align="top",
                                 width="fill",
-                                height=40
+                                height=self.config.Title.HEIGHT
                                 )
         self.title_bar.bg = self.config.Title.BACKGROUND_COLOR
         self.title_bar_left = guizero.Box(
@@ -148,23 +148,40 @@ class MiraAppplication:
                                 )
 
 
-    def _create_status_box(self) -> None:
+    def _create_status_box(self, st_list: list) -> None:
+        status_box_height = self.config.Display.HEIGHT - self.config.Title.HEIGHT - self.config.Spacing.HEIGHT - (self.config.Buttons.BUTTON_HEIGHT * int(len(st_list)/2))
+        status_line_height = int(status_box_height / 2)
         self.status_box = guizero.Box(
                                 self.app,
                                 align="top",
-                                width="fill"
+                                width="fill",
+                                height=status_box_height
                                 )
         self.status_box.bg = self.config.Status.BACKGROUND_COLOR
-        self.status_text1 = guizero.Text(
+        self.status_box1 = guizero.Box(
                                 self.status_box,
-                                font=self.config.Status.FONT[0],
-                                size=self.config.Status.FONT[1],
+                                align="top",
+                                width="fill",
+                                height=status_line_height
+                                )
+        self.status_box2 = guizero.Box(
+                                self.status_box,
+                                align="top",
+                                width="fill",
+                                height=status_line_height
+                                )
+        self.status_text1 = guizero.Text(
+                                self.status_box1,
+                                height="fill",
+                                font=self.config.Status.FONT_LINE1[0],
+                                size=self.config.Status.FONT_LINE1[1],
                                 color=self.config.Status.TEXT_COLOR
                                 )
         self.status_text2 = guizero.Text(
-                                self.status_box,
-                                font=self.config.Status.FONT[0],
-                                size=self.config.Status.FONT[1],
+                                self.status_box2,
+                                height="fill",
+                                font=self.config.Status.FONT_LINE2[0],
+                                size=self.config.Status.FONT_LINE2[1],
                                 color=self.config.Status.TEXT_COLOR
                                 )
 

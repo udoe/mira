@@ -12,14 +12,14 @@ class MiraStations:
         dict(
             name = "Radio Swiss Pop",
             url = "https://stream.srg-ssr.ch/m/rsp/aacp_96",
-            background_color = "green",
-            text_color = "blue",
+            #background_color = "green",
+            #text_color = "blue",
         ),
         dict(
             name = "Radio BOB!",
             url = "http://streams.radiobob.de/bob-national/mp3-192/mediaplayer",
-            background_color = "yellow",
-            text_color = "blue",
+            #background_color = "yellow",
+            #text_color = "blue",
         ),
         dict(
             name = "Radio 3",

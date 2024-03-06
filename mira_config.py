@@ -17,13 +17,15 @@ class MiraConfig:
         HEIGHT = 480
 
     class Title:
+        HEIGHT = 40
         USE_24h_TIME_FORMAT = True
         BACKGROUND_COLOR = "lightblue"
         UPDATE_INTERVAL = 5000
 
     class Status:
         """ status pane """
-        FONT = ("Helvetica", 16)
+        FONT_LINE1 = ("Helvetica", 26)
+        FONT_LINE2 = ("Helvetica", 24)
 
         # Specify a color name, for a complete list, check out https://wiki.tcl.tk/37701
         BACKGROUND_COLOR = "yellow"
@@ -49,9 +51,9 @@ class MiraConfig:
         NUM_BUTTONS_PER_ROW = 2
         BUTTON_HEIGHT = 80
 
-        FONT = ("Helvetica", 16)
+        FONT = ("Helvetica", 24)
 
-        BACKGROUND_COLOR = "red"
+        BACKGROUND_COLOR = "cornflower blue"
         TEXT_COLOR = "black"
 
 
