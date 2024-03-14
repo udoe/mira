@@ -40,12 +40,16 @@ Setup:
 
 
 Autostart
-1. edit ~/.config/wayfire.ini
-2. add a section
+1. create a .sh file (example: ~/launch_mira.sh)
+    #!/usr/bin/sh
+    sleep 5
+    /usr/bin/python ~/Github/mira/mira.py --fullscreen
+2. edit ~/.config/wayfire.ini
+3. add a section at the end
     [autostart]
-    (name) = command to run
-3. save and exit
-4. reboot
+    (name) = path of file to be run on startup
+4. save and exit
+5. reboot
 
 
 
