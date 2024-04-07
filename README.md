@@ -17,12 +17,12 @@ The program was built and tested for following hardware and software components:
 Software:
 
 - Python version: 3.12.2
-- Raspberry Pi OS (based on Debian 12 (Bookwworm))
+- Raspberry Pi OS (based on Debian 12 (Bookworm))
 
 Hardware:
 - Raspberry Pi 4 Model B
 - touch-sensitive display for Raspberry Pi 4 (any touch-sensitive display for Raspberry Pi 4 should work, but some may need further configurations within Raspberry Pi OS)
-- HiFi Berry DAC Plus (any HiFi Berry should work, configuration of Raspberry Pi OS will vary, see step-by-step guide/HiFi Berry)
+- HiFiBerry DAC+ (any HiFiBerry should work, but configuration of the Raspberry Pi OS will vary, see [`step-by-step guide/HiFiBerry`](#hifiberry))
 
 
 If you need help setting up mira on your own Raspberry Pi please refer to the [`step-by-step guide`](#step-by-step-guide) below for detailed instructions.
@@ -86,7 +86,7 @@ ___
     
     `mpc play`
 
-9. ### when test complete, stop playing
+9. #### when test complete, stop playing
 
     `mpc stop`
 
@@ -98,17 +98,17 @@ ___
 
 ## Autostart
 
-1. #### create a .sh file (example: ~/launch_mira.sh) with following content:
+1. #### create a .sh file (example: ~/launch_mira.sh) with the following content
     
     > #!/usr/bin/sh  
     > sleep 5  
     > /usr/bin/python ~/Github/mira/mira.py --fullscreen  (the file path depends on where mira was copied to)
 
-2. #### edit wayfire:
+2. #### edit wayfire
 
     `sudo nano ~/.config/wayfire.ini`
 
-    add a section at the end:
+    add a section at the end
     
     > [autostart]  
     > (name) = path of file to be run on startup
@@ -126,7 +126,7 @@ ___
 1. #### for available driver modules run
     `ls -l /boot/firmware/overlays/hifiberry*`
 
-2. #### edit 
+2. #### add the driver module to the firmware config
 
     `sudo nano /boot/firmware/config.txt`
     
@@ -138,5 +138,5 @@ ___
 
 5. #### reboot the Raspberry Pi
 
-6. #### repeat steps from Setup [`4`](#determine-the-audio-output-device), [`5`](#edit-config-of-mpd) and [`7`](#start-or-restart-mpd-in-systemctl)
+6. #### repeat steps [`4`](#determine-the-audio-output-device), [`5`](#edit-config-of-mpd) and [`7`](#start-or-restart-mpd-in-systemctl) of Setup
 
