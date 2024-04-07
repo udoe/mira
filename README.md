@@ -1,6 +1,6 @@
 
 # mira
-Minimalist Internet Radio
+### Minimalist Internet Radio
 
 (date of creation: February 2024)
 
