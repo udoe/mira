@@ -21,7 +21,7 @@ Software:
 
 Hardware:
 - Raspberry Pi 4 Model B
-- touch-sensitive display for Raspberry Pi 4 (any touch-sensitive display for Raspberry Pi 4 should work, but some may need further configurations within Raspberry Pi OS)
+- Display: Waveshare 4.3inch DSI LCD Capacitive Touch Screen Display 800x480 Resolution IPS Wide Angle Monitor for Raspberry Pi 4B/3B+/3A+/3B/2B/B+/A+ (any touch-sensitive display for Raspberry Pi 4 should work, but some may need further configurations within Raspberry Pi OS)
 - HiFiBerry DAC+ (any HiFiBerry should work, but configuration of the Raspberry Pi OS will vary, see [`step-by-step guide/HiFiBerry`](#hifiberry))
 
 
