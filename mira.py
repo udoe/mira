@@ -20,47 +20,13 @@ import logging
 import json
 import datetime
 import pathlib
+import math
 
 from mira_config import MiraConfig
 from mira_stations import MiraStations
 from constants import Key
 
-
-
-def ensure_dir_exists(filepath: pathlib.Path) -> None:
-    p = filepath.parent
-    p.mkdir(parents=True, exist_ok=True)
-
-
-def get_stations_list(stations: MiraStations) -> list:
-    """ Validate specified stations and return a stations list. """
-    st_list = []
-    for st in stations.stations:
-        if Key.URL in st and st[Key.URL]:
-            st_list.append(st)
-
-    return st_list
-
-
-
-class Preset:
-    """ A predefined internet radio station """
-
-    def __init__(self, number: int, config: MiraConfig, station: dict) -> None:
-        self.number = number
-        self.name = station[Key.NAME]
-        self.url = station[Key.URL]
-
-        if Key.BACKGROUND_COLOR in station:
-            self.background_color = station[Key.BACKGROUND_COLOR]
-        else:
-            self.background_color = config.Buttons.BACKGROUND_COLOR
-
-        if Key.TEXT_COLOR in station:
-            self.text_color = station[Key.TEXT_COLOR]
-        else:
-            self.text_color = config.Buttons.TEXT_COLOR
-
+from helpers import Preset, PresetButton, PageButton, ensure_dir_exists, get_stations_list
 
 
 
@@ -68,10 +34,13 @@ class MiraAppplication:
     """ Top level application """
 
 
-    def __init__(self, config: MiraConfig, stations: MiraStations) -> None:
+    def __init__(self, config: MiraConfig, stations: MiraStations, fullscreen: bool) -> None:
 
         self.config = config
         self.timer_running = False
+
+        self.preset_buttons = []
+        self.page_buttons = []
 
         # build list of presets from predefined stations list
         st_list = get_stations_list(stations)
@@ -80,26 +49,57 @@ class MiraAppplication:
         for st in st_list:
             self.presets.append(Preset(n, config, st))
             n += 1
+        
+        # if no stations are defined, add a default station
+        if len(self.presets) == 0:
+            dummy_st = dict(
+                name = "Radio 1",
+                url = "https://radio1.de"
+                )
+            dummy_preset = Preset(0, config, dummy_st)
+            self.presets.append(dummy_preset)
+
+        # restore last station or None
+        self.current_preset = self._load_last_played()
 
         # top level window
-        app_width = config.Display.WIDTH
-        app_height = config.Display.HEIGHT
         self.app = guizero.App(
                             title="MIRa",
-                            width=app_width,
-                            height=app_height
+                            width=config.Display.WIDTH,
+                            height=config.Display.HEIGHT
                             )
+        
+        if fullscreen:
+            self.app.set_full_screen()
+
+        logging.info(f"App window: width={self.app.width}, height={self.app.height}")
+
         # title bar
         self._create_title_bar()
 
         # status pane
-        self._create_status_box(st_list)
+        self._create_status_box()
 
         # spacing area (optional)
-        self._create_spacing_area()
+        self._create_spacing_area(self.config.Spacing.HEIGHT)
 
-        # box that contains the buttons
-        self._create_buttons()
+        # create box for preset buttons
+        self.buttons_box = guizero.Box(
+                                self.app,
+                                align="top",
+                                width="fill",
+                                height=(self.config.Buttons.BUTTON_HEIGHT * self.config.Buttons.NUM_BUTTON_ROWS),
+                                layout="grid"
+                                )
+        
+        logging.info(f"Preset buttons box: width={self.buttons_box.width}, height={self.buttons_box.height}")
+
+        # create buttons within the preset buttons box
+        self._create_buttons_page(self._get_current_page_index())
+
+        # box that contains the page selector buttons
+        self._create_page_selector()
+
 
 
     # Functions:
@@ -143,8 +143,8 @@ class MiraAppplication:
                                 )
 
 
-    def _create_status_box(self, st_list: list) -> None:
-        status_box_height = self.config.Display.HEIGHT - self.config.Title.HEIGHT - self.config.Spacing.HEIGHT - (self.config.Buttons.BUTTON_HEIGHT * int(len(st_list)/2))
+    def _create_status_box(self) -> None:
+        status_box_height = self.config.Status.HEIGHT
         status_line_height = int(status_box_height / 2)
         self.status_box = guizero.Box(
                                 self.app,
@@ -157,17 +157,18 @@ class MiraAppplication:
                                 self.status_box,
                                 align="top",
                                 width="fill",
-                                height=status_line_height
+                                height=(status_line_height + 4)
                                 )
         self.status_box2 = guizero.Box(
                                 self.status_box,
                                 align="top",
                                 width="fill",
-                                height=status_line_height
+                                height=(status_line_height - 4)
                                 )
         self.status_text1 = guizero.Text(
                                 self.status_box1,
                                 height="fill",
+                                align="bottom",
                                 font=self.config.Status.FONT_LINE1[0],
                                 size=self.config.Status.FONT_LINE1[1],
                                 color=self.config.Status.TEXT_COLOR
@@ -175,73 +176,117 @@ class MiraAppplication:
         self.status_text2 = guizero.Text(
                                 self.status_box2,
                                 height="fill",
+                                align="bottom",
                                 font=self.config.Status.FONT_LINE2[0],
                                 size=self.config.Status.FONT_LINE2[1],
                                 color=self.config.Status.TEXT_COLOR
                                 )
 
 
-    def _create_spacing_area(self) -> None:
-        spacing_height = int(self.config.Spacing.HEIGHT)
-        if spacing_height > 0:
-            self.spacing_box = guizero.Box(
+    def _create_spacing_area(self, height: int) -> None:
+        if height > 0:
+            spacing_box = guizero.Box(
                                     self.app,
                                     align="top",
                                     width="fill",
-                                    height=spacing_height
+                                    height=height
                                     )
-            self.spacing_box.bg = self.config.Spacing.BACKGROUND_COLOR
+            spacing_box.bg = self.config.Spacing.BACKGROUND_COLOR
 
 
-    def _create_buttons(self) -> None:
-        self.buttons_box = guizero.Box(
-                                self.app,
-                                align="top",
-                                width=self.config.Display.WIDTH,
-                                height="fill",
-                                layout="grid"
-                                )
+    def _create_buttons_page(self, page_idx: int) -> None:
 
-        # create a button for each preset
-        buttons_per_row = int(self.config.Buttons.NUM_BUTTONS_PER_ROW)
-        bt_width = int(self.config.Display.WIDTH / buttons_per_row)
-        bt_height = int(self.config.Buttons.BUTTON_HEIGHT)
+        # reset
+        self.preset_buttons = []
+        logging.info(f"--- preset buttons box cleanup ---")
+        logging.info(f"All button box children before destroy: {self.buttons_box.children}")
+        while len(self.buttons_box.children) > 0:
+            self.buttons_box.children[0].destroy()
+        logging.info(f"All button box children after destroy: {self.buttons_box.children}")
+
+        # create a button for each preset of the given page
         bt_x = 0
         bt_y = 0
-        self.preset_buttons = []
-        for ps in self.presets:
-            # To be able to size a button in terms of pixels (instead characters),
-            # we put every button in a surrounding box.
-            box_width = bt_width
-            bx = guizero.Box(
-                        self.buttons_box,
-                        grid=[bt_x, bt_y],
-                        width=box_width,
-                        height=bt_height
-                        )
-            bt = guizero.PushButton(
-                        bx,
-                        width="fill",
-                        height="fill",
-                        text=ps.name,
-                        command=self._button_pressed,
-                        args=[ps],
-                        )
-            bt.font = self.config.Buttons.FONT[0]
-            bt.text_size = self.config.Buttons.FONT[1]
-            bt.bg = ps.background_color
-            bt.text_color = ps.text_color
+        for idx in range(0, self._get_num_presets_of_page(page_idx)):
+
+            ps = self.presets[self._get_first_preset_idx_of_page(page_idx) + idx]
+            bt = PresetButton(
+                    containing_box=self.buttons_box, 
+                    position=(bt_x, bt_y),
+                    preset=ps,
+                    callback=self._on_button_pressed,
+                    config=self.config
+                    )
 
             self.preset_buttons.append(bt)
+            logging.info(f"Placed preset button on grid at: x={bt_x}, y={bt_y}")
 
             bt_x += 1
-            if bt_x >= buttons_per_row:
+            if bt_x >= self.config.Buttons.NUM_BUTTON_COLUMNS:
                 bt_x = 0
                 bt_y += 1
 
 
-    def _button_pressed(self, preset: Preset) -> None:
+
+    def _create_page_selector(self):
+        # init
+        self.selector_box = guizero.Box(
+                                self.app,
+                                align="bottom",
+                                width="fill",
+                                height=self.config.PageSelector.BUTTON_HEIGHT,
+                                layout="grid"
+                                )
+        self.page_buttons = []
+
+        # add buttons to box
+        bt_y = 0
+        bt_x = 0
+        for page_idx in range(0, self._get_num_pages()):
+  
+            bt = PageButton(
+                    containing_box=self.selector_box,
+                    position=(bt_x, bt_y),
+                    page_idx=page_idx,
+                    callback=self._on_page_selected,
+                    config=self.config
+                    )
+
+            self.page_buttons.append(bt)
+
+            bt_x += 1
+
+
+    def _get_current_page_index(self) -> int:
+        if self.current_preset is not None:
+            return math.floor(self.current_preset.number / self.config.Buttons.NUM_BUTTONS_PER_PAGE)
+        return 0
+    
+    def _get_first_preset_idx_of_page(self, page_idx: int) -> int:
+        return page_idx * self.config.Buttons.NUM_BUTTONS_PER_PAGE
+
+    def _get_num_presets_of_page(self, page_idx: int) -> int:
+        cnt = len(self.presets) - self._get_first_preset_idx_of_page(page_idx)
+        if cnt > self.config.Buttons.NUM_BUTTONS_PER_PAGE:
+            cnt = self.config.Buttons.NUM_BUTTONS_PER_PAGE
+        return cnt
+    
+    def _get_num_pages(self) -> int:
+        return math.ceil(len(self.presets) / self.config.Buttons.NUM_BUTTONS_PER_PAGE)
+
+
+
+    def _on_page_selected(self, page_idx: int) -> None:
+        logging.info(f"Page '{page_idx}' was selected.")
+
+        self._create_buttons_page(page_idx)
+        self._update_page_btn_color(page_idx)
+        self._update_btn_color(self.current_preset)
+
+
+    def _on_button_pressed(self, preset: Preset) -> None:
         logging.info(f"Button '{preset.name}' was pressed. URL: '{preset.url}'")
+        self.current_preset = preset
 
         self._play(preset)
 
@@ -253,11 +298,19 @@ class MiraAppplication:
 
 
     def _update_btn_color(self, preset: Preset) -> None:
-        for ps in self.presets:
-            if ps.number == preset.number:
-                self.preset_buttons[ps.number].bg = self.config.Buttons.PRESSED_BUTTON_COLOR
+        for btn in self.preset_buttons:
+            if btn.preset.number == preset.number:
+                btn.button.bg = self.config.Buttons.PRESSED_BUTTON_COLOR
             else:
-                self.preset_buttons[ps.number].bg = self.config.Buttons.BACKGROUND_COLOR
+                btn.button.bg = self.config.Buttons.BACKGROUND_COLOR
+
+
+    def _update_page_btn_color(self, page_idx: int) -> None:
+        for btn in self.page_buttons:
+            if btn.idx == page_idx:
+                btn.button.bg = self.config.PageSelector.PRESSED_BUTTON_COLOR
+            else:
+                btn.button.bg = self.config.PageSelector.BACKGROUND_COLOR
 
 
     def _play(self, preset: Preset) -> None:
@@ -404,24 +457,26 @@ class MiraAppplication:
 
 
     def _restore_last_played(self) -> None:
-        preset = self._load_last_played()
-        if preset is not None:
-            self._play(preset)
-            self._update_btn_color(preset)
+        if self.current_preset is not None:
+            self._play(self.current_preset)
+            self._update_btn_color(self.current_preset)
+            self._update_page_btn_color(self._get_current_page_index())
         else:
             self.status_text1.value = "No preset active."
 
 
-    def run(self, fullscreen: bool) -> None:
+    def run(self) -> None:
+        logging.info(f"--- restoring last played station ---")
         self._restore_last_played()
-
-        if fullscreen:
-            self.app.set_full_screen()
 
         self._update_title_bar()
         self.app.repeat(self.config.Title.UPDATE_INTERVAL, self._on_title_timer)
 
+        logging.info(f"App window before display(): width={self.app.width}, height={self.app.height}")
+
         self.app.display()
+
+
 
 
 
@@ -440,8 +495,11 @@ def main(fullscreen: bool):
     if MiraConfig.General.LOGLEVEL_DEBUG:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    app = MiraAppplication(MiraConfig, MiraStations)
-    app.run(fullscreen)
+    logging.info(f"--- initializing ---")
+    logging.info(f"--- guizero version {guizero.__version__} ---")
+    app = MiraAppplication(MiraConfig, MiraStations, fullscreen)
+    logging.info(f"--- app startup ---")
+    app.run()
 
 
 if __name__ == "__main__":

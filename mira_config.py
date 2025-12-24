@@ -14,16 +14,19 @@ class MiraConfig:
     class Display:
         """ display properties """
         WIDTH = 800
-        HEIGHT = 480
+        # bugfix, otherwise page selector buttons cannot be clicked
+        HEIGHT = 480 + 1
 
     class Title:
-        HEIGHT = 40
+        HEIGHT = 30
         USE_24h_TIME_FORMAT = True
         BACKGROUND_COLOR = "green yellow"
         UPDATE_INTERVAL = 5000
 
     class Status:
         """ status pane """
+        HEIGHT = 100
+
         FONT_LINE1 = ("Helvetica", 26)
         FONT_LINE2 = ("Helvetica", 22)
 
@@ -42,14 +45,18 @@ class MiraConfig:
 
     class Spacing:
         """ spacing area """
-        HEIGHT = 20
+        HEIGHT = 15
         BACKGROUND_COLOR = "LightYellow3"
+
 
     class Buttons:
         """ preset buttons """
-        # layout
-        NUM_BUTTONS_PER_ROW = 2
-        BUTTON_HEIGHT = 80
+        # layout per page
+        NUM_BUTTON_COLUMNS = 2
+        NUM_BUTTON_ROWS = 4
+        NUM_BUTTONS_PER_PAGE = NUM_BUTTON_ROWS * NUM_BUTTON_COLUMNS
+
+        BUTTON_HEIGHT = 68 #68
 
         FONT = ("Helvetica", 24)
 
@@ -59,4 +66,17 @@ class MiraConfig:
         
         PRESSED_BUTTON_COLOR = "#6db36d"
 
+        
 
+    class PageSelector:
+        """ buttons for selecting the radio button pages"""
+        BUTTON_HEIGHT = 68
+        BUTTON_WIDTH = 68
+
+        FONT = ("Helvetica", 24)
+
+        #BACKGROUND_COLOR = "PaleGreen2"
+        BACKGROUND_COLOR = "#8ce68c"
+        TEXT_COLOR = "black"
+
+        PRESSED_BUTTON_COLOR = "#6db36d"
