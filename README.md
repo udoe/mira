@@ -8,7 +8,7 @@ This is a project to implement our own internet radio for everyday use. We creat
 
 ___
 
-![screenshot of mira running on a Raspi 4](/screenshots/GUI)
+![screenshot of mira running on a Raspi 4](/screenshots/GUI.png)
 
 ___
 
