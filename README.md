@@ -140,3 +140,27 @@ ___
 
 6. #### repeat steps [`4`](#determine-the-audio-output-device), [`5`](#edit-config-of-mpd) and [`7`](#start-or-restart-mpd-in-systemctl) of Setup
 
+
+
+## Optional configuration
+
+### disable WiFi and Bluetooth
+1. #### open the firmware config file
+   `sudo nano /boot/firmware/config.txt`
+
+2. #### find the section
+   ```
+    # Additional overlays and parameters are documented
+    # /boot/firmware/overlays/README
+   ```
+
+3. #### add the following lines
+   ```
+   dtoverlay=disable-wifi
+   dtoverlay=disable-bt
+   ```
+
+4. #### save and exit
+5. #### reboot the Raspberry Pi
+
+
