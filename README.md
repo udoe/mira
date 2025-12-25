@@ -40,11 +40,13 @@ ___
 
     `sudo raspi-config`
 
-3. #### install mpd and mpc
+3. #### install packages
 
-    `sudo apt install mpd`
-
-    `sudo apt install mpc`
+    ```
+    sudo apt install mpd
+    sudo apt install mpc
+    sudo apt instal python3-guizero
+    ```
 
 4. #### determine the audio output device
 
@@ -121,7 +123,7 @@ ___
 
 
 
-## HifiBerry 
+## HifiBerry driver setup (if required)
 
 1. #### for available driver modules run
     `ls -l /boot/firmware/overlays/hifiberry*`
@@ -144,7 +146,7 @@ ___
 
 ## Optional configuration
 
-### disable WiFi and Bluetooth
+### Disable WiFi and Bluetooth
 1. #### open the firmware config file
    `sudo nano /boot/firmware/config.txt`
 
@@ -162,5 +164,11 @@ ___
 
 4. #### save and exit
 5. #### reboot the Raspberry Pi
+
+
+### Adjust output level of Dac+
+
+    `sudo alsamixer`
+
 
 
