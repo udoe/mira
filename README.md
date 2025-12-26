@@ -53,6 +53,7 @@ ___
     ```
 
 3. #### Edit config of X server
+
     `sudo nano /etc/X11/Xwrapper.config`
     edit the following line to allow any users
 
@@ -60,13 +61,13 @@ ___
 
 
 
-5. #### determine the audio output device
+4. #### determine the audio output device
 
     `aplay -l`
 
     > hw[2,0] <- card 2, device 0
 
-6. #### edit config of mpd
+5. #### edit config of mpd
 
     `sudo nano /etc/mpd.conf`
     
@@ -78,7 +79,7 @@ ___
     >   device       "hw:2,0"  
     >}
 
-7. #### enable mpd in systemctl
+6. #### enable mpd in systemctl
 
     `sudo systemctl enable mpd`
     
@@ -86,13 +87,13 @@ ___
 
     `sudo systemctl status mpd`
 
-8. #### start or restart mpd in systemctl
+7. #### start or restart mpd in systemctl
 
     `sudo systemctl start mpd`
 
     `sudo systemctl restart mpd`
 
-9.  #### test mpc and mpd
+8.  #### test mpc and mpd
     
     `mpc clear`
     
@@ -100,13 +101,13 @@ ___
     
     `mpc play`
 
-10. #### when test complete, stop playing
+9.  #### when test complete, stop playing
 
     `mpc stop`
 
-11. #### download all mira files and copy them to your directory of choice
+10. #### download all mira files and copy them to your directory of choice
 
-12. #### the Raspberry Pi is now set up and should be ready to use
+11. #### the Raspberry Pi is now set up and should be ready to use
 
 
 
@@ -175,19 +176,20 @@ ___
 
 ### Disable WiFi and Bluetooth
 1. #### open the firmware config file
-   `sudo nano /boot/firmware/config.txt`
+
+`sudo nano /boot/firmware/config.txt`
 
 2. #### find the section
-   ```
-    # Additional overlays and parameters are documented
-    # /boot/firmware/overlays/README
-   ```
+```
+# Additional overlays and parameters are documented
+# /boot/firmware/overlays/README
+```
 
 3. #### add the following lines
-   ```
-   dtoverlay=disable-wifi
-   dtoverlay=disable-bt
-   ```
+```
+dtoverlay=disable-wifi
+dtoverlay=disable-bt
+```
 
 4. #### save and exit
 5. #### reboot the Raspberry Pi
@@ -195,10 +197,20 @@ ___
 
 ### Adjust output level of Dac+
 
-    `sudo alsamixer`
+`sudo alsamixer`
 
 
+### Configure screen off timeout
+create the file
+`sudo nano /etc/X11/xorg.conf.d/screensaver.conf`
+
+add the following content to the file to disable the screen off timeout
+
+    > Section "ServerFlags"
+    > Option "BlankTime"  "0"
+    > EndSection
 
 
+see also `man xorg.conf`
 
 
