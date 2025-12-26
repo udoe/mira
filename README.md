@@ -34,16 +34,12 @@ ___
 
 ## Setup:
 
-1. #### install [Raspberry Pi OS](https://www.raspberrypi.com/software/ "Go to website") with an imager on an SD-Card
-- using the Raspberry Pi OS Lite image (no desktop environment)
-- using `mira` as username
+1. #### Install [Raspberry Pi OS](https://www.raspberrypi.com/software/ "Go to website") with an imager on an SD-Card
+   - using the Raspberry Pi OS Lite image (no desktop environment)
+   - using `mira` as username
 
 
-1. #### for general Raspi configurations use
-
-    `sudo raspi-config`
-
-2. #### install packages
+1. #### Install packages
 
     ```
     sudo apt install mpd
@@ -52,62 +48,88 @@ ___
     sudo apt install xinit
     ```
 
-3. #### Edit config of X server
+1. #### Edit config of X server
 
-    `sudo nano /etc/X11/Xwrapper.config`
+    ```
+    sudo nano /etc/X11/Xwrapper.config
+    ```
+
     edit the following line to allow any users
 
-    > allowed_users=anybody
+    ```
+    allowed_users=anybody
+    ```
 
 
 
-4. #### determine the audio output device
+1. #### Determine the audio output device
 
-    `aplay -l`
+    ```
+    aplay -l
+    ```
 
-    > hw[2,0] <- card 2, device 0
+    search for the card and device number, e.g. card 2, device 0
 
-5. #### edit config of mpd
 
-    `sudo nano /etc/mpd.conf`
+1. #### Edit config of mpd
+
+    ```
+    sudo nano /etc/mpd.conf
+    ```
     
     uncomment the following and edit the device according to [`step 4`](#determine-the-audio-output-device)
-    
-    >audio_output {  
-    >   type          "alsa"  
-    >   name          "My ALSA Device"  
-    >   device       "hw:2,0"  
-    >}
 
-6. #### enable mpd in systemctl
+    ```
+    audio_output {  
+       type          "alsa"  
+       name          "My ALSA Device"  
+       device       "hw:2,0"  
+    }
+    ```
 
-    `sudo systemctl enable mpd`
+1. #### Enable mpd in systemctl
+
+    ```
+    sudo systemctl enable mpd
+    ```
     
     check if mpd is enabled
 
-    `sudo systemctl status mpd`
+    ```
+    sudo systemctl status mpd
+    ```
 
-7. #### start or restart mpd in systemctl
+1. #### Start or restart mpd in systemctl
 
-    `sudo systemctl start mpd`
+    ```
+    sudo systemctl start mpd
+    ```
 
-    `sudo systemctl restart mpd`
+    ```
+    sudo systemctl restart mpd
+    ```
 
-8.  #### test mpc and mpd
+1.  #### Test mpc and mpd
     
-    `mpc clear`
+    ```
+    mpc clear
+    ```
     
-    `mpc add [Radio-URL]`
+    ```
+    mpc add [Radio-URL]
+    ```
     
-    `mpc play`
+    ```
+    mpc play
+    ```
 
-9.  #### when test complete, stop playing
+1.  #### When test complete, stop playing
 
-    `mpc stop`
+    ```
+    mpc stop
+    ```
 
-10. #### download all mira files and copy them to your directory of choice
-
-11. #### the Raspberry Pi is now set up and should be ready to use
+1. #### Download all mira files and copy them to your directory of choice.
 
 
 
@@ -117,33 +139,46 @@ ___
 
 1. #### Review and adapt the paths in mira.service
 2. #### Create systemd service
-    `sudo systemctl enable /home/mira/Github/mira/mira.service`
+   
+    ```
+    sudo systemctl enable /home/mira/Github/mira/mira.service
+    ```
+
 3. #### Start the service
-    `sudo systemctl start mira`
+    
+    ```
+    sudo systemctl start mira
+    ```
 
 
 
 
 ## Autostart with Wayland desktop environment
 
-1. #### create a .sh file (example: ~/launch_mira.sh) with the following content
+1. #### Create a .sh file (example: ~/launch_mira.sh) with the following content
     
-    > #!/usr/bin/sh  
-    > sleep 5  
-    > /usr/bin/python ~/Github/mira/mira.py --fullscreen  (the file path depends on where mira was copied to)
+    ```
+    #!/usr/bin/sh  
+    sleep 5  
+    /usr/bin/python ~/Github/mira/mira.py --fullscreen  (the file path depends on where mira was copied to)
+    ```
 
-2. #### edit wayfire
+2. #### Edit wayfire file
 
-    `sudo nano ~/.config/wayfire.ini`
+    ```
+    sudo nano ~/.config/wayfire.ini
+    ```
 
     add a section at the end
     
-    > [autostart]  
-    > (name) = path of file to be run on startup
+    ```
+    [autostart]  
+    (name) = path of file to be run on startup
+    ```
 
-3. #### save and exit
+3. #### Save and exit
 
-4. #### reboot the Raspberry Pi
+4. #### Reboot the Raspberry Pi
 
 
 
@@ -153,22 +188,30 @@ ___
 
 ## HifiBerry driver setup (if required)
 
-1. #### for available driver modules run
-    `ls -l /boot/firmware/overlays/hifiberry*`
+1. #### For available driver modules run
 
-2. #### add the driver module to the firmware config
+    ```
+    ls -l /boot/firmware/overlays/hifiberry*
+    ```
 
-    `sudo nano /boot/firmware/config.txt`
-    
+2. #### Add the driver module to the firmware config
+
+    ```
+    sudo nano /boot/firmware/config.txt
+    ```
+
     and add to section `[all]`:
 
-    `dtoverlay=hifiberry-dacplus`        (the module that matches your specific HAT model)
+    ```
+    dtoverlay=hifiberry-dacplus
+    ```
+    (the module that matches your specific HAT model)
 
-4. #### save and exit
+3. #### Save and exit
 
-5. #### reboot the Raspberry Pi
+4. #### Reboot the Raspberry Pi
 
-6. #### repeat steps [`4`](#determine-the-audio-output-device), [`5`](#edit-config-of-mpd) and [`7`](#start-or-restart-mpd-in-systemctl) of Setup
+5. #### Repeat steps [`4`](#determine-the-audio-output-device), [`5`](#edit-config-of-mpd) and [`7`](#start-or-restart-mpd-in-systemctl) of Setup
 
 
 
@@ -177,38 +220,54 @@ ___
 ### Disable WiFi and Bluetooth
 1. #### open the firmware config file
 
-`sudo nano /boot/firmware/config.txt`
+    ```
+    sudo nano /boot/firmware/config.txt
+    ```
 
-2. #### find the section
+2. #### Find the section
+    ```
+    # Additional overlays and parameters are documented
+    # /boot/firmware/overlays/README
+    ```
+
+3. #### Add the following lines
+    ```
+    dtoverlay=disable-wifi
+    dtoverlay=disable-bt
+    ```
+
+4. #### Save and exit
+5. #### Reboot the Raspberry Pi
+
+
+### For general Raspi configurations use
 ```
-# Additional overlays and parameters are documented
-# /boot/firmware/overlays/README
+sudo raspi-config
 ```
 
-3. #### add the following lines
-```
-dtoverlay=disable-wifi
-dtoverlay=disable-bt
-```
-
-4. #### save and exit
-5. #### reboot the Raspberry Pi
 
 
 ### Adjust output level of Dac+
 
-`sudo alsamixer`
+```
+sudo alsamixer
+```
 
 
 ### Configure screen off timeout
 create the file
-`sudo nano /etc/X11/xorg.conf.d/screensaver.conf`
+
+```
+sudo nano /etc/X11/xorg.conf.d/screensaver.conf
+```
 
 add the following content to the file to disable the screen off timeout
 
-    > Section "ServerFlags"
-    > Option "BlankTime"  "0"
-    > EndSection
+```
+Section "ServerFlags"
+Option "BlankTime"  "0"
+EndSection
+```
 
 
 see also `man xorg.conf`
