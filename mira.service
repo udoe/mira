@@ -1,0 +1,31 @@
+[Unit]
+
+# Human readable name of the unit
+Description=Minimalist Internet Radio
+
+# We depend on MPD
+After=mpd.service
+
+
+[Service]
+
+# Command to execute when the service is started
+ExecStart=/usr/bin/startx /usr/bin/python /home/mira/Github/mira/mira.py --fullscreen
+
+# Disable Python's buffering of STDOUT and STDERR, so that output from the
+# service shows up immediately in systemd's logs
+Environment=PYTHONUNBUFFERED=1
+
+# Automatically restart the service if it crashes
+Restart=always
+
+# Use a dedicated user to run our service
+User=mira
+
+
+[Install]
+
+# Tell systemd to automatically start this service when the system boots
+# (assuming the service is enabled)
+WantedBy=default.target
+
