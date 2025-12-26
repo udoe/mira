@@ -35,26 +35,38 @@ ___
 ## Setup:
 
 1. #### install [Raspberry Pi OS](https://www.raspberrypi.com/software/ "Go to website") with an imager on an SD-Card
+- using the Raspberry Pi OS Lite image (no desktop environment)
+- using `mira` as username
 
-2. #### for general Raspi configurations use
+
+1. #### for general Raspi configurations use
 
     `sudo raspi-config`
 
-3. #### install packages
+2. #### install packages
 
     ```
     sudo apt install mpd
     sudo apt install mpc
     sudo apt instal python3-guizero
+    sudo apt install xinit
     ```
 
-4. #### determine the audio output device
+3. #### Edit config of X server
+    `sudo nano /etc/X11/Xwrapper.config`
+    edit the following line to allow any users
+
+    > allowed_users=anybody
+
+
+
+5. #### determine the audio output device
 
     `aplay -l`
 
     > hw[2,0] <- card 2, device 0
 
-5. #### edit config of mpd
+6. #### edit config of mpd
 
     `sudo nano /etc/mpd.conf`
     
@@ -66,7 +78,7 @@ ___
     >   device       "hw:2,0"  
     >}
 
-6. #### enable mpd in systemctl
+7. #### enable mpd in systemctl
 
     `sudo systemctl enable mpd`
     
@@ -74,13 +86,13 @@ ___
 
     `sudo systemctl status mpd`
 
-7. #### start or restart mpd in systemctl
+8. #### start or restart mpd in systemctl
 
     `sudo systemctl start mpd`
 
     `sudo systemctl restart mpd`
 
-8. #### test mpc and mpd
+9.  #### test mpc and mpd
     
     `mpc clear`
     
@@ -88,17 +100,30 @@ ___
     
     `mpc play`
 
-9. #### when test complete, stop playing
+10. #### when test complete, stop playing
 
     `mpc stop`
 
-10. #### download all mira files and copy them to your directory of choice
+11. #### download all mira files and copy them to your directory of choice
 
-11. #### the Raspberry Pi is now set up and should be ready to use
+12. #### the Raspberry Pi is now set up and should be ready to use
 
 
 
-## Autostart
+
+
+## Autostart without desktop environment
+
+1. #### Review and adapt the paths in mira.service
+2. #### Create systemd service
+    `sudo systemctl enable /home/mira/Github/mira/mira.service`
+3. #### Start the service
+    `sudo systemctl start mira`
+
+
+
+
+## Autostart with Wayland desktop environment
 
 1. #### create a .sh file (example: ~/launch_mira.sh) with the following content
     
@@ -118,6 +143,8 @@ ___
 3. #### save and exit
 
 4. #### reboot the Raspberry Pi
+
+
 
 
 
@@ -169,6 +196,9 @@ ___
 ### Adjust output level of Dac+
 
     `sudo alsamixer`
+
+
+
 
 
 
