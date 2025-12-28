@@ -68,7 +68,13 @@ ___
     aplay -l
     ```
 
-    search for the card and device number, e.g. card 2, device 0
+    search for the correct card, e.g.: 
+    ```
+    card 3: sndrpihifiberry [snd_rpi_hifiberry_dacplus], device 0: HiFiBerry DAC+ HiFi pcm512x-hifi-0 [HiFiBerry DAC+ HiFi pcm512x-hifi-0]
+    Subdevices: 0/1
+    Subdevice #0: subdevice #0
+    ```
+
 
 
 1. #### Edit config of mpd
@@ -83,9 +89,11 @@ ___
     audio_output {  
        type          "alsa"  
        name          "My ALSA Device"  
-       device       "hw:2,0"  
+       device        "hw:CARD=sndrpihifiberry,DEV=0"  
     }
     ```
+
+    see also `man 5 mpd.conf`
 
 1. #### Enable mpd in systemctl
 
@@ -252,6 +260,13 @@ sudo raspi-config
 ```
 sudo alsamixer
 ```
+
+To permanently save the settings run:
+```
+sudo alsactl store
+```
+
+
 
 
 ### Configure screen off timeout
